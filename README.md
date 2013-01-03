@@ -38,7 +38,7 @@ Recursively find all files which matches the `pattern` inside a given `root` dir
 
 
 ### find.dir(pattern, root, callback)
-see **find.file** above except that it will find direcory names
+see **find.file** above except that it will find directory names
 
 
 ### find.eachfile(pattern, root, action)
@@ -57,17 +57,17 @@ This function will return an object which has a `end` method, to be used as call
 
 
 ### find.eachdir(pattern, root, callback)
-see **find.eachfile** above except that it will find direcory names
+see **find.eachfile** above except that it will find directory names.
  
 
 ### find.fileSync(pattern, root)
 Recursively Find all files which matches the `pattern` inside a given `root` directory **synchronously** and returns the result as an array. This follows the default 'Sync' 
-methods of nodejs, think about `fs.readdirSync`, 
+methods of nodejs, think about `fs.readdirSync`. 
   
     var allfiles = find.fileSync(/./, '/tmp');
 
 ### find.dirSync(pattern, root)
-see **find.dirSync** above except that it will find direcory names
+see **find.dirSync** above except that it will find directory names.
  
 
 
