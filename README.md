@@ -61,13 +61,13 @@ see **find.eachfile** above except that it will find directory names.
  
 
 ### find.fileSync(pattern, root)
-Recursively Find all files which matches the `pattern` inside a given `root` directory **synchronously** and returns the result as an array. This follows the default 'Sync' 
+Recursively Find all files which matches the `pattern` inside a given `root` directory and returns the result as an array. This follows the default 'Sync' 
 methods of nodejs, think about `fs.readdirSync`. 
   
     var allfiles = find.fileSync(/./, '/tmp');
 
 ### find.dirSync(pattern, root)
-see **find.dirSync** above except that it will find directory names.
+see **find.fileSync** above except that it will find directory names.
  
 
 
