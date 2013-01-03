@@ -1,0 +1,13 @@
+{
+    "name": "find" 
+  , "version": "0.1.0"
+  , "description": "Find files or sub-directories inside a directory in a clear way"
+  , "url": "https://github.com/yuanchuan/find"
+  , "author": "yuanchuan <yuanchuan23@gmail.com> (http://yuanchuan.name)"
+  , "main": "./index.js"
+  , "keywords": ["find", "findfile", "grep", "search", "files", "directores"]
+  , "repository": {
+        "type": "git"
+      , "url": "git://github.com/yuanchuan/find.git"
+    }
+}
