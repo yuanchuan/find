@@ -16,8 +16,8 @@ Find all `.js` files in current directory.
 ```javascript
 var find = require('find');
 
-find.file(/\.js$/, __dirname, function(all) {
-  console.log(all.length);
+find.file(/\.js$/, __dirname, function(files) {
+  console.log(files.length);
 })
 ```
 
@@ -56,7 +56,7 @@ find.eachfile(/./, __dirname, function(file) {
 ### #eachdir(pattern, root, callback)
 
 ```javascript
-find.eachdir(/./, __dirname, function(file) {
+find.eachdir(/./, __dirname, function(dir) {
   //
 })
 ```  
