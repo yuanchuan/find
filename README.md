@@ -61,19 +61,6 @@ find.eachdir(/./, __dirname, function(dir) {
 })
 ```  
 
-* `find.eachfile` and `find.eachdir` will return an object with an `end` method to be used as callback function since this is asynchronous way.
-
-```javascript
-find
-  .eachfile(/./, __dirname, function(file) {
-    console.log(file);
-  })
-  .end(function() {
-    console.log('find end'); 
-  }) 
-```
- 
-
 ### #fileSync(pattern, root)
 ```javascript
 var files = find.fileSync(/./, __dirname);
@@ -83,7 +70,36 @@ var files = find.fileSync(/./, __dirname);
 ```javascript
 var dirs = find.dirSync(/./, __dirname);
 ```
+
+## Returned object in Asynchronous APIs
+
+### Handling errors
+
+```javascript
+find
+  .file(/./, __dirname, function(file) {
+    //  
+  })
+  .error(function(err) {
+    if (err) {
+      //
+    }
+  })
+```
+
+### Detect `end` in `find.eachfile` and `find.eachdir`
+
+```javascript
+find
+  .eachfile(/./, __dirname, function(file) {
+    //
+  })
+  .end(function() {
+    console.log('find end'); 
+  }) 
+```
  
+
 ## LICENSE
 
 (MIT Licensed)
