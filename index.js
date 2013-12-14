@@ -22,6 +22,26 @@ var find = module.exports = {
 
 
 /**
+ *  Method injection for handling errors.
+ */
+['readdir', 'lstat'].forEach(function(method) {
+  var origin = fs[method];
+  fs[method] = function(path, callback) {
+    return origin.apply(fs, [path, function(err) {
+      if (err) {
+        if (find.__errorHandler) {
+          find.__errorHandler(err);
+        } else {
+          throw err;
+        }
+      } 
+      return callback.apply(null, arguments);
+    }]);
+  }
+});
+
+
+/**
  * Utility for checking types.
  */
 var is = (function(expose) {
@@ -63,16 +83,13 @@ var compare = function(pat, name) {
  */
 var traverseAsync = function(root, type, action, callback, c) {
   fs.lstat(root, function(err, stat) {
-    if (err) throw err;
     if (stat && stat.isDirectory()) {  
       fs.readdir(root, function(err, all) {
-        if (err) throw err;
         var chain = Chain();
         all && all.forEach(function(dir) {
           dir = path.join(root, dir);
           chain.add(function() {
             fs.lstat(dir, function(err, s) {
-              if (err) throw err;
               if (!s) return chain.next();
               if (s.isFile() && type === 'file') {
                 action(dir);
@@ -148,7 +165,14 @@ var traverseSync = function(root, type, action) {
             return compare(pat, n);
           }));
         }
-    )
+    );
+    return {
+      error: function(handler) {
+        if (is.func(handler)) {
+          find.__errorHandler = handler;  
+        } 
+      }
+    }
   }
 
   /**
@@ -184,6 +208,13 @@ var traverseSync = function(root, type, action) {
         if (is.func(fn)) {
           callback = fn;
         }
+        return this;
+      }, 
+      error: function(handler) {
+        if (is.func(handler)) {
+          find.__errorHandler = handler;    
+        }
+        return this;
       }
     };
   }
