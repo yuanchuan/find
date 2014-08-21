@@ -24,9 +24,10 @@ var find = module.exports = {
 /**
  *  Method injection for handling errors.
  */
+var fss = {};
 ['readdir', 'lstat'].forEach(function(method) {
   var origin = fs[method];
-  fs[method] = function(path, callback) {
+  fss[method] = function(path, callback) {
     return origin.apply(fs, [path, function(err) {
       if (err) {
         if (find.__errorHandler) {
@@ -82,14 +83,14 @@ var compare = function(pat, name) {
  * @api private
  */
 var traverseAsync = function(root, type, action, callback, c) {
-  fs.lstat(root, function(err, stat) {
+  fss.lstat(root, function(err, stat) {
     if (stat && stat.isDirectory()) {  
-      fs.readdir(root, function(err, all) {
+      fss.readdir(root, function(err, all) {
         var chain = Chain();
         all && all.forEach(function(dir) {
           dir = path.join(root, dir);
           chain.add(function() {
-            fs.lstat(dir, function(err, s) {
+            fss.lstat(dir, function(err, s) {
               if (!s) return chain.next();
               if (s.isFile() && type === 'file') {
                 action(dir);
@@ -124,7 +125,7 @@ var traverseAsync = function(root, type, action, callback, c) {
  * @api private
  */  
 var traverseSync = function(root, type, action) {
-  var stat = fs.lstatSync(root);        
+  var stat = fss.lstatSync(root);        
   if (stat && stat.isDirectory()) {
     fs.readdirSync(root).forEach(function(dir) {
       var s = fs.lstatSync(dir = path.join(root, dir));
