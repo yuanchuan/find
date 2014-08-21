@@ -125,7 +125,7 @@ var traverseAsync = function(root, type, action, callback, c) {
  * @api private
  */  
 var traverseSync = function(root, type, action) {
-  var stat = fss.lstatSync(root);        
+  var stat = fs.lstatSync(root);        
   if (stat && stat.isDirectory()) {
     fs.readdirSync(root).forEach(function(dir) {
       var s = fs.lstatSync(dir = path.join(root, dir));
