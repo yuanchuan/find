@@ -155,14 +155,23 @@ var traverseSync = function(root, type, action) {
    */ 
   find[type] = function(pat, root, fn) {
     var buffer = [];
+    if (arguments.length == 2) {
+      fn = root;
+      root = pat;
+      pat = '';
+    } 
     traverseAsync(
         root
       , type
       , function(n) { buffer.push(n);}
       , function() {
-          is.func(fn) && fn(buffer.filter(function(n) {
-            return compare(pat, n);
-          }));
+          if (is.func(fn) && pat) {
+            fn(buffer.filter(function(n) {
+              return compare(pat, n);
+            }));
+          } else {
+            fn(buffer);
+          }
         }
     );
     return {
@@ -190,12 +199,18 @@ var traverseSync = function(root, type, action) {
    */ 
   find['each' + type] = function(pat, root, action) {
     var callback = function() {}
+    if (arguments.length == 2) {
+      action = root;
+      root = pat;
+      pat = '';
+    } 
     process.nextTick(function() {
       traverseAsync(
           root
         , type
         , function(n) {
-            if (compare(pat, n) && is.func(action)) {
+            if (!is.func(action)) return;
+            if (!pat || compare(pat, n)) {
               action(n);
             }
           }
@@ -232,12 +247,16 @@ var traverseSync = function(root, type, action) {
    */ 
   find[type + 'Sync'] = function(pat, root) {
     var buffer = [];
+    if (arguments.length == 1) {
+      root = pat;
+      pat = '';
+    }
     traverseSync(root, type, function(n) {
       buffer.push(n);  
     });
-    return buffer.filter(function(n) {
+    return pat && buffer.filter(function(n) {
       return compare(pat, n);
-    });
+    }) || buffer;
   } 
 
 }); 
