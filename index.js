@@ -24,19 +24,26 @@ var find = module.exports = {
 var fss = {};
 
 /**
+ *  Error handler wrapper.
+ */
+fss.errorHandler = function(err) {
+  if (err) {
+    if (find.__errorHandler) {
+      find.__errorHandler(err);
+    } else {
+      throw err;
+    }
+  }  
+};
+
+/**
  *  Method injection for handling errors.
  */
 ['readdir', 'lstat'].forEach(function(method) {
   var origin = fs[method];
   fss[method] = function(path, callback) {
     return origin.apply(fs, [path, function(err) {
-      if (err) {
-        if (find.__errorHandler) {
-          find.__errorHandler(err);
-        } else {
-          throw err;
-        }
-      } 
+      fss.errorHandler(err);
       return callback.apply(null, arguments);
     }]);
   }
@@ -44,7 +51,7 @@ var fss = {};
 
 
 /**
- * Enhancement for fs.readlink && fs.readlinkSync;
+ * Enhancement for fs.readlink && fs.readlinkSync.
  */
 fss.readlink = function(name, fn, depth) {
   if (depth == undefined) depth = 10;
@@ -52,13 +59,7 @@ fss.readlink = function(name, fn, depth) {
     var isSymbolicLink = stat.isSymbolicLink(name);
     if (isSymbolicLink && depth) {
       fs.readlink(name, function(err, origin) {
-        if (err) {
-          if (find.__errorHandler) {
-            find.__errorHandler(err);
-          } else {
-            throw err;
-          }
-        }  
+        fss.errorHandler(err);
         fss.readlink(origin, fn, --depth);
       });
     } else {
