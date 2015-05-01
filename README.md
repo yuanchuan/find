@@ -11,11 +11,19 @@ $ npm install find
 
 ## Examples
 
-Find all `.js` files in current directory.
+Find all files in current directory.
 
 ```javascript
 var find = require('find');
 
+find.file(__dirname, function(files) {
+  console.log(files.length);
+})
+```
+
+Filter by regular expression.
+
+```javascript
 find.file(/\.js$/, __dirname, function(files) {
   console.log(files.length);
 })
@@ -26,49 +34,54 @@ find.file(/\.js$/, __dirname, function(files) {
   * Asynchronously or synchronously 
   * Filtering by regular expression or string comparing
 
+## Changelog
+#### 0.2.0
+* the first `pattern` option is now optional
+* will follow symbolic links
+
 
 ## API
 
-### #file(pattern, root, callback)
+### #file([pattern], root, callback)
 
 ```javascript
-find.file(/log/, __dirname, function(files) {
+find.file(__dirname, function(files) {
   //
 })
 ```
 
-### #dir(pattern, root, callback)
+### #dir([pattern], root, callback)
 ```javascript
-find.dir(/log/, __dirname, function(dirs) {
+find.dir(__dirname, function(dirs) {
   //
 })
 ``` 
 
 
-### #eachfile(pattern, root, action)
+### #eachfile([pattern], root, action)
 
 ```javascript
-find.eachfile(/./, __dirname, function(file) {
+find.eachfile(__dirname, function(file) {
   //
 })
 ```
 
-### #eachdir(pattern, root, callback)
+### #eachdir([pattern], root, action)
 
 ```javascript
-find.eachdir(/./, __dirname, function(dir) {
+find.eachdir(__dirname, function(dir) {
   //
 })
 ```  
 
-### #fileSync(pattern, root)
+### #fileSync([pattern], root)
 ```javascript
-var files = find.fileSync(/./, __dirname);
+var files = find.fileSync(__dirname);
 ```
 
-### #dirSync(pattern, root)
+### #dirSync([pattern], root)
 ```javascript
-var dirs = find.dirSync(/./, __dirname);
+var dirs = find.dirSync(__dirname);
 ```
 
 ## Returned object in Asynchronous APIs
@@ -77,7 +90,7 @@ var dirs = find.dirSync(/./, __dirname);
 
 ```javascript
 find
-  .file(/./, __dirname, function(file) {
+  .file(__dirname, function(file) {
     //  
   })
   .error(function(err) {
@@ -91,7 +104,7 @@ find
 
 ```javascript
 find
-  .eachfile(/./, __dirname, function(file) {
+  .eachfile(__dirname, function(file) {
     //
   })
   .end(function() {
