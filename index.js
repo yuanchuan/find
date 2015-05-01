@@ -53,7 +53,7 @@ var is = (function(expose) {
   };
   Object.keys(method).forEach(function(type) {
     expose[method[type]] = function(input) {
-      return Object.prototype.toString.call(input) === '[object ' + type +  ']'; 
+      return ({}).toString.call(input) === '[object ' + type +  ']'; 
     }
   });
   return expose;
