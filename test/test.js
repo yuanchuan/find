@@ -160,21 +160,50 @@ describe('API test', function() {
     done();
   });          
 
-/*
-  it('should follow symblic link with option', function(done) {
-    var tmpfile;
-    var link = watchdir + '-link';
-    fs.symlinkSync(watchdir, link, 'dir');
-    watch(link, {followSymLinks: true}, function(changed) {
-      assert.equal(tmpfile, changed)
+  it('`find.*` should follow symbolic links', function(done) {
+    var files = createFilesUnder(testdir, 2);
+    var src = files[0];
+    var dest = src + '-link';
+    files.push(dest);
+    fs.symlinkSync(src, dest, 'file');
+
+    var all = find.fileSync(testdir);
+    assert.equal(files.sort().join(), all.sort().join());
+
+    find.file(testdir, function(all) {
+      assert.equal(files.sort().join(), all.sort().join());
       done();
     });
-
-    createFileUnder(link, function(file) {
-      tmpfile = file;
-      randomWriteTo(file);
-    }); 
   });       
-  */
+
+  it('`find.*` should ignore circular symbolic links', function(done) {
+    var files = createFilesUnder(testdir, 2);
+    var src = files[0];
+    var a = src + '-link-a';
+    var b = src + '-link-b';
+    var c = src + '-link-c';
+
+    fs.symlinkSync(src, a, 'file'); 
+    fs.symlinkSync(a, b, 'file'); 
+    fs.symlinkSync(b, c, 'file'); 
+    fs.unlinkSync(src);
+    fs.symlinkSync(a, src, 'file');
+
+    var dirs = find.dirSync(testdir);
+    assert(dirs.length == 0);
+    
+    var all = find.fileSync(testdir);
+    assert(files.sort().join(''), all.sort().join(''));
+
+    find.file(testdir, function(all) {
+      assert(files.sort().join(''), all.sort().join(''));
+
+      find.dir(testdir, function(all) {
+        assert(all.length == 0);
+        done();
+      });
+    });
+
+  });
 
 });

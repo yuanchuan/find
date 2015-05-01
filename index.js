@@ -21,10 +21,11 @@ var find = module.exports = {
 };
 
 
+var fss = {};
+
 /**
  *  Method injection for handling errors.
  */
-var fss = {};
 ['readdir', 'lstat'].forEach(function(method) {
   var origin = fs[method];
   fss[method] = function(path, callback) {
@@ -40,6 +41,36 @@ var fss = {};
     }]);
   }
 });
+
+
+/**
+ * Enhancement for fs.readlink && fs.readlinkSync;
+ */
+fss.readlink = function(name, fn, depth) {
+  if (depth == undefined) depth = 10;
+  fss.lstat(name, function(err, stat) {
+    var isSymbolicLink = stat.isSymbolicLink(name);
+    if (isSymbolicLink && depth) {
+      fs.readlink(name, function(err, origin) {
+        fss.readlink(origin, fn, --depth);
+      });
+    } else {
+      fn(isSymbolicLink ? '' : name, stat);
+    }
+  });
+}
+
+fss.readlinkSync = function(name, depth) {
+  if (depth == undefined) depth = 10;
+  var stat = fs.lstatSync(name);
+  var isSymbolicLink = stat.isSymbolicLink(name);
+  if (isSymbolicLink && depth) {
+    var origin = fs.readlinkSync(name);
+    return fss.readlinkSync(origin, --depth);
+  } else {
+    return isSymbolicLink ? '' : name;
+  }
+}  
 
 
 /**
@@ -92,15 +123,27 @@ var traverseAsync = function(root, type, action, callback, c) {
           chain.add(function() {
             fss.lstat(dir, function(err, s) {
               if (!s) return chain.next();
-              if (s.isDirectory()) {
-                if (type == 'dir') action(dir);
-                traverseAsync(dir, type, action, callback, chain); 
-              } else if (type == 'file') {
-                action(dir);
-                chain.next();
-              } else {
-                chain.next();
+              var handleFile = function() {
+                if (type == 'file') action(dir);
+                chain.next(); 
               }
+              var handleDir = function() {
+                if (type == 'dir') action(dir);
+                traverseAsync(dir, type, action, callback, chain);  
+              }
+              if (s.isDirectory()) {
+                handleDir();
+              } else if (s.isSymbolicLink()) {
+                fss.readlink(dir, function(origin, thisStat) {
+                  if (origin) {
+                    thisStat.isDirectory() ?  handleDir() : handleFile();
+                  } else {
+                    chain.next();
+                  }
+                });
+              } else {
+                handleFile();
+              } 
             });
           })
         });
@@ -128,11 +171,23 @@ var traverseSync = function(root, type, action) {
     fs.readdirSync(root).forEach(function(dir) {
       var s = fs.lstatSync(dir = path.join(root, dir));
       if (!s) return;
-      if (s.isDirectory()) {
+      var handleDir = function() {
         if (type == 'dir') action(dir);
-        traverseSync(dir, type, action);
-      } else if (type == 'file') {
-        action(dir);
+        traverseSync(dir, type, action); 
+      }
+      var handleFile = function() {
+        if (type == 'file') action(dir);
+      }
+      if (s.isDirectory()) {
+        handleDir();
+      } else if (s.isSymbolicLink()) {
+        var origin = fss.readlinkSync(dir);  
+        if (origin) {
+          var thisStat = fs.lstatSync(origin);
+          thisStat.isDirectory() ? handleDir : handleFile();
+        }
+      } else {
+        handleFile();
       } 
     });
   }
