@@ -4,10 +4,10 @@ var path = require('path');
 var tmp = require('tmp');
 var find = require('..');
 
-function createFilesUnder(dir, num) {
+function createFilesUnder(dir, num, ext) {
   var files = [];
   num = num || 1;
-  var opts = { template: dir + '/tmp-XXXXXX' };
+  var opts = { template: dir + '/tmp-XXXXXX' + (ext || '') };
   for (var i = 0; i < num; ++i) {
     files.push(tmp.fileSync(opts).name);
   }
@@ -45,6 +45,7 @@ describe('API test', function() {
       done();
     });
   });   
+
   it('`find.file()` should find recursively', function(done) {
     var expect = createFilesUnder(testdir, 3);
     var level1 = createDirUnder(testdir);
@@ -136,6 +137,28 @@ describe('API test', function() {
     assert.equal(expect.sort().join(''), all.sort().join(''));
     done();
   }); 
+
+  it('`find.*` should find by name', function(done) {
+    var expect = createFilesUnder(testdir, 3);
+    var first = expect[0];
+    find.file(path.basename(first), testdir, function(all) {
+      assert.equal(first, all[0]);
+      done();
+    });
+  });    
+
+  it('`find.*` should find by regular expression', function(done) {
+    var html = createFilesUnder(testdir, 1, '.html');
+    var js = createFilesUnder(testdir, 2, '.js');
+
+    htmlAll = find.fileSync(/\.html$/, testdir);
+    assert.equal( html.join(''), htmlAll.join(''));
+
+    jsAll = find.fileSync(/\.js$/, testdir);
+    assert.equal( js.sort().join(''), jsAll.sort().join('')); 
+
+    done();
+  });          
 
 /*
   it('should follow symblic link with option', function(done) {
