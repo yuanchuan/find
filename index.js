@@ -52,6 +52,13 @@ fss.readlink = function(name, fn, depth) {
     var isSymbolicLink = stat.isSymbolicLink(name);
     if (isSymbolicLink && depth) {
       fs.readlink(name, function(err, origin) {
+        if (err) {
+          if (find.__errorHandler) {
+            find.__errorHandler(err);
+          } else {
+            throw err;
+          }
+        }  
         fss.readlink(origin, fn, --depth);
       });
     } else {

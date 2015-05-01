@@ -203,7 +203,25 @@ describe('API test', function() {
         done();
       });
     });
-
   });
+
+  
+  it('`.error()`should catch exceptions', function(done) {
+    var catched;
+    try {
+      find
+        .file('__not_exist', function(f) { })
+        .error(function(err) {
+          catched = true;
+        });
+    } catch(e) {
+      catched = false;
+    }
+    setTimeout(function() {
+      assert(catched);
+      done();
+    });
+  });
+
 
 });
