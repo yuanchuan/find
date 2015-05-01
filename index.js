@@ -92,14 +92,12 @@ var traverseAsync = function(root, type, action, callback, c) {
           chain.add(function() {
             fss.lstat(dir, function(err, s) {
               if (!s) return chain.next();
-              if (s.isFile() && type === 'file') {
+              if (s.isDirectory()) {
+                if (type == 'dir') action(dir);
+                traverseAsync(dir, type, action, callback, chain); 
+              } else if (type == 'file') {
                 action(dir);
                 chain.next();
-              } else if (s.isDirectory()) {
-                if (type === 'dir') {
-                  action(dir);
-                }
-                traverseAsync(dir, type, action, callback, chain);
               } else {
                 chain.next();
               }
@@ -130,12 +128,12 @@ var traverseSync = function(root, type, action) {
     fs.readdirSync(root).forEach(function(dir) {
       var s = fs.lstatSync(dir = path.join(root, dir));
       if (!s) return;
-      if (s.isFile() && type === 'file') {
-        action(dir)
-      } else if (s.isDirectory()) {
-        (type === 'dir') && action(dir);
+      if (s.isDirectory()) {
+        if (type == 'dir') action(dir);
         traverseSync(dir, type, action);
-      }
+      } else if (type == 'file') {
+        action(dir);
+      } 
     });
   }
 };
