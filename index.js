@@ -36,6 +36,7 @@ fss.errorHandler = function(err) {
   }  
 };
 
+
 /**
  *  Method injection for handling errors.
  */
@@ -135,16 +136,20 @@ var traverseAsync = function(root, type, action, callback, c) {
                 if (type == 'file') action(dir);
                 chain.next(); 
               }
-              var handleDir = function() {
+              var handleDir = function(isSymbolicLink) {
                 if (type == 'dir') action(dir);
-                traverseAsync(dir, type, action, callback, chain);  
+                if (isSymbolicLink) {
+                  chain.next();
+                } else {
+                  traverseAsync(dir, type, action, callback, chain);  
+                }
               }
               if (s.isDirectory()) {
                 handleDir();
               } else if (s.isSymbolicLink()) {
                 fss.readlink(dir, function(origin, thisStat) {
                   if (origin) {
-                    thisStat.isDirectory() ?  handleDir() : handleFile();
+                    thisStat.isDirectory() ?  handleDir(s.isSymbolicLink()) : handleFile();
                   } else {
                     chain.next();
                   }
@@ -179,9 +184,11 @@ var traverseSync = function(root, type, action) {
     fs.readdirSync(root).forEach(function(dir) {
       var s = fs.lstatSync(dir = path.join(root, dir));
       if (!s) return;
-      var handleDir = function() {
+      var handleDir = function(isSymbolicLink) {
         if (type == 'dir') action(dir);
-        traverseSync(dir, type, action); 
+        if (!isSymbolicLink) {
+          traverseSync(dir, type, action); 
+        }
       }
       var handleFile = function() {
         if (type == 'file') action(dir);
@@ -192,7 +199,7 @@ var traverseSync = function(root, type, action) {
         var origin = fss.readlinkSync(dir);  
         if (origin) {
           var thisStat = fs.lstatSync(origin);
-          thisStat.isDirectory() ? handleDir : handleFile();
+          thisStat.isDirectory() ? handleDir(s.isSymbolicLink()) : handleFile();
         }
       } else {
         handleFile();

@@ -160,21 +160,41 @@ describe('API test', function() {
     done();
   });          
 
-  it('`find.*` should follow symbolic links', function(done) {
+  it('`find.*` should follow file symbolic links', function(done) {
     var files = createFilesUnder(testdir, 2);
-    var src = files[0];
-    var dest = src + '-link';
-    files.push(dest);
-    fs.symlinkSync(src, dest, 'file');
+    var srcfile = files[0];
+    var linkfile = srcfile + '-link';
+    files.push(linkfile);
+    fs.symlinkSync(srcfile, linkfile, 'file');
 
-    var all = find.fileSync(testdir);
-    assert.equal(files.sort().join(), all.sort().join());
+    var allfile = find.fileSync(testdir);
+    assert.equal(files.sort().join(), allfile.sort().join());
 
     find.file(testdir, function(all) {
-      assert.equal(files.sort().join(), all.sort().join());
+      assert.equal(files.sort().join(), allfile.sort().join());
       done();
     });
   });       
+
+  it('`find.*` should follow direcotry symbolic links', function(done) {
+    createFilesUnder(testdir, 2);
+    var dir = createDirUnder(testdir);
+    var srcdir = createDirUnder(testdir);
+    var linkdir = srcdir + '-link';
+    var dirs = [dir, srcdir, linkdir];
+
+    fs.symlinkSync(srcdir, linkdir, 'dir');
+
+    var alldir = find.dirSync(testdir);
+    assert.equal(dirs.sort().join(), alldir.sort().join()); 
+
+    find.dir(testdir, function(all) {
+      assert.equal(dirs.sort().join(), all.sort().join());
+      done();
+    });
+    
+  });       
+ 
 
   it('`find.*` should ignore circular symbolic links', function(done) {
     var files = createFilesUnder(testdir, 2);
