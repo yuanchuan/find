@@ -42,7 +42,7 @@ find.file(/\.js$/, __dirname, function(files) {
 
 ## API
 
-### #file([pattern], root, callback)
+### #file([pattern,] root, callback)
 
 ```javascript
 find.file(__dirname, function(files) {
@@ -50,7 +50,7 @@ find.file(__dirname, function(files) {
 })
 ```
 
-### #dir([pattern], root, callback)
+### #dir([pattern,] root, callback)
 ```javascript
 find.dir(__dirname, function(dirs) {
   //
@@ -58,7 +58,7 @@ find.dir(__dirname, function(dirs) {
 ``` 
 
 
-### #eachfile([pattern], root, action)
+### #eachfile([pattern,] root, action)
 
 ```javascript
 find.eachfile(__dirname, function(file) {
@@ -66,7 +66,7 @@ find.eachfile(__dirname, function(file) {
 })
 ```
 
-### #eachdir([pattern], root, action)
+### #eachdir([pattern,] root, action)
 
 ```javascript
 find.eachdir(__dirname, function(dir) {
@@ -74,12 +74,12 @@ find.eachdir(__dirname, function(dir) {
 })
 ```  
 
-### #fileSync([pattern], root)
+### #fileSync([pattern,] root)
 ```javascript
 var files = find.fileSync(__dirname);
 ```
 
-### #dirSync([pattern], root)
+### #dirSync([pattern,] root)
 ```javascript
 var dirs = find.dirSync(__dirname);
 ```

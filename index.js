@@ -1,7 +1,6 @@
-
-var fs = require('fs')
-  , path = require('path')
-  , Chain = require('traverse-chain');
+var fs = require('fs');
+var path = require('path');
+var Chain = require('traverse-chain');
 
 
 /**
@@ -9,16 +8,43 @@ var fs = require('fs')
  */
 var find = module.exports = {
 
-  // file:      function(pat, root, callback) {}
-  // dir:       function(pat, root, callback) {}
+  // file:      function([pat,] root, callback) {}
+  // dir:       function([pat,] root, callback) {}
 
-  // eachfile:  function(pat, root, action) {}
-  // eachdir:   function(pat, root, action) {}
+  // eachfile:  function([pat,] root, action) {}
+  // eachdir:   function([pat,] root, action) {}
 
-  // fileSync:  function(pat, root) {}
-  // dirSync:   function(pat, root) {}
+  // fileSync:  function([pat,] root) {}
+  // dirSync:   function([pat,] root) {}
 
 };
+
+
+var is = (function() {
+  function existed(name) {
+    return fs.existsSync(name) 
+  } 
+  function fsType(type) {
+    return function(name) {
+      return existed(name) ? fs.lstatSync(name)['is' + type]() : false;   
+    }
+  } 
+  function objType(type) {
+    return function(input) {
+      return ({}).toString.call(input) === '[object ' + type +  ']'; 
+    }
+  }
+  return {
+    existed:      existed,
+    file:         fsType('File'),
+    directory:    fsType('Directory'),
+    symbolicLink: fsType('SymbolicLink'),
+
+    string:       objType('String'),
+    regexp:       objType('RegExp'),
+    func:         objType('Function')
+  };
+}()); 
 
 
 var fss = {};
@@ -34,6 +60,13 @@ fss.errorHandler = function(err) {
       throw err;
     }
   }  
+};
+
+
+var error = {
+  notExists: function(name) {
+    return new Error(name + ' does not exists.');
+  }
 };
 
 
@@ -56,48 +89,31 @@ fss.errorHandler = function(err) {
  */
 fss.readlink = function(name, fn, depth) {
   if (depth == undefined) depth = 10;
-  fss.lstat(name, function(err, stat) {
-    var isSymbolicLink = stat.isSymbolicLink(name);
-    if (isSymbolicLink && depth) {
-      fs.readlink(name, function(err, origin) {
-        fss.errorHandler(err);
-        fss.readlink(origin, fn, --depth);
-      });
-    } else {
-      fn(isSymbolicLink ? '' : name, stat);
-    }
-  });
+  var isSymbolicLink = is.symbolicLink(name);
+  if (!isSymbolicLink) {
+    fn(path.resolve(name));
+  } else if (depth) {
+    fs.readlink(name, function(err, origin) {
+      fss.errorHandler(err);
+      fss.readlink(origin, fn, --depth);
+    });
+  } else {
+    fn(isSymbolicLink ? '' : path.resolve(name));
+  }
 }
 
 fss.readlinkSync = function(name, depth) {
   if (depth == undefined) depth = 10;
-  var stat = fs.lstatSync(name);
-  var isSymbolicLink = stat.isSymbolicLink(name);
-  if (isSymbolicLink && depth) {
+  var isSymbolicLink = is.symbolicLink(name);
+  if (!isSymbolicLink) {
+    return path.resolve(name);
+  } else if (depth) {
     var origin = fs.readlinkSync(name);
     return fss.readlinkSync(origin, --depth);
   } else {
-    return isSymbolicLink ? '' : name;
+    return isSymbolicLink ? '' : path.resolve(name);
   }
 }  
-
-
-/**
- * Utility for checking types.
- */
-var is = (function(expose) {
-  var method = {
-      'String'  : 'string'
-    , 'RegExp'  : 'regx'
-    , 'Function': 'func'
-  };
-  Object.keys(method).forEach(function(type) {
-    expose[method[type]] = function(input) {
-      return ({}).toString.call(input) === '[object ' + type +  ']'; 
-    }
-  });
-  return expose;
-}({}));
 
 
 /**
@@ -106,7 +122,7 @@ var is = (function(expose) {
 var compare = function(pat, name) {
   var str = path.basename(name);
   return (
-       is.regx(pat)   && pat.test(str) 
+       is.regexp(pat)   && pat.test(str) 
     || is.string(pat) && pat === str
   ); 
 };
@@ -123,49 +139,45 @@ var compare = function(pat, name) {
  * @api private
  */
 var traverseAsync = function(root, type, action, callback, c) {
-  fss.lstat(root, function(err, stat) {
-    if (stat && stat.isDirectory()) {  
-      fss.readdir(root, function(err, all) {
-        var chain = Chain();
-        all && all.forEach(function(dir) {
-          dir = path.join(root, dir);
-          chain.add(function() {
-            fss.lstat(dir, function(err, s) {
-              if (!s) return chain.next();
-              var handleFile = function() {
-                if (type == 'file') action(dir);
-                chain.next(); 
-              }
-              var handleDir = function(isSymbolicLink) {
-                if (type == 'dir') action(dir);
-                if (isSymbolicLink) {
-                  chain.next();
-                } else {
-                  traverseAsync(dir, type, action, callback, chain);  
-                }
-              }
-              if (s.isDirectory()) {
-                handleDir();
-              } else if (s.isSymbolicLink()) {
-                fss.readlink(dir, function(origin, thisStat) {
-                  if (origin) {
-                    thisStat.isDirectory() ?  handleDir(s.isSymbolicLink()) : handleFile();
-                  } else {
-                    chain.next();
-                  }
-                });
+  if (!is.existed(root)) {
+    fss.errorHandler(error.notExists(root))
+  }
+  if (is.directory(root)) {
+    fss.readdir(root, function(err, all) {
+      var chain = Chain();
+      all && all.forEach(function(dir) {
+        dir = path.join(root, dir);
+        chain.add(function() {
+          var handleFile = function() {
+            if (type == 'file') action(dir);
+            chain.next(); 
+          }
+          var handleDir = function(skip) {
+            if (type == 'dir') action(dir);
+            if (skip) chain.next();
+            else traverseAsync(dir, type, action, callback, chain);  
+          }
+          var isSymbolicLink = is.symbolicLink(dir);
+          if (is.directory(dir)) {
+            handleDir();
+          } else if (isSymbolicLink) {
+            fss.readlink(dir, function(origin) {
+              if (origin) {
+                is.directory(origin) ? handleDir(isSymbolicLink) : handleFile();
               } else {
-                handleFile();
-              } 
+                chain.next();
+              }
             });
-          })
-        });
-        chain.traverse(function() {
-          c ? c.next() : callback();
-        });
+          } else {
+            handleFile();
+          } 
+        })
       });
-    }
-  });
+      chain.traverse(function() {
+        c ? c.next() : callback();
+      });
+    });
+  }
 }
 
  
@@ -179,27 +191,25 @@ var traverseAsync = function(root, type, action, callback, c) {
  * @api private
  */  
 var traverseSync = function(root, type, action) {
-  var stat = fs.lstatSync(root);        
-  if (stat && stat.isDirectory()) {
+  if (!is.existed(root)) throw error.notExists(root);
+  if (is.directory(root)) {
     fs.readdirSync(root).forEach(function(dir) {
-      var s = fs.lstatSync(dir = path.join(root, dir));
-      if (!s) return;
-      var handleDir = function(isSymbolicLink) {
+      dir = path.join(root, dir);
+      var handleDir = function(skip) {
         if (type == 'dir') action(dir);
-        if (!isSymbolicLink) {
-          traverseSync(dir, type, action); 
-        }
+        if (skip) return;
+        traverseSync(dir, type, action); 
       }
       var handleFile = function() {
         if (type == 'file') action(dir);
       }
-      if (s.isDirectory()) {
+      var isSymbolicLink = is.symbolicLink(dir);
+      if (is.directory(dir)) {
         handleDir();
-      } else if (s.isSymbolicLink()) {
-        var origin = fss.readlinkSync(dir);  
+      } else if (isSymbolicLink) {
+        var origin = fss.readlinkSync(dir);
         if (origin) {
-          var thisStat = fs.lstatSync(origin);
-          thisStat.isDirectory() ? handleDir(s.isSymbolicLink()) : handleFile();
+          is.directory(origin) ? handleDir(isSymbolicLink) : handleFile();
         }
       } else {
         handleFile();
@@ -207,7 +217,7 @@ var traverseSync = function(root, type, action) {
     });
   }
 };
- 
+
 
 ['file', 'dir'].forEach(function(type) {
   
@@ -230,7 +240,8 @@ var traverseSync = function(root, type, action) {
       root = pat;
       pat = '';
     } 
-    traverseAsync(
+    process.nextTick(function() {
+      traverseAsync(
         root
       , type
       , function(n) { buffer.push(n);}
@@ -243,7 +254,8 @@ var traverseSync = function(root, type, action) {
             fn(buffer);
           }
         }
-    );
+      );
+    });
     return {
       error: function(handler) {
         if (is.func(handler)) {

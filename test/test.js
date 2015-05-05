@@ -225,6 +225,18 @@ describe('API test', function() {
     });
   });
 
+  it('should throw exception at root which does not exist', function(done) {
+    var catched = false;
+    try {
+      find.fileSync('__not_exist');
+    } catch(e) {
+      catched = true;
+    }
+    setTimeout(function() {
+      assert(catched);
+      done();
+    });
+  }); 
   
   it('`.error()`should catch exceptions', function(done) {
     var catched;
