@@ -64,8 +64,8 @@ fss.errorHandler = function(err) {
 
 
 var error = {
-  notExists: function(name) {
-    return new Error(name + ' does not exists.');
+  notExist: function(name) {
+    return new Error(name + ' does not exist.');
   }
 };
 
@@ -140,7 +140,7 @@ var compare = function(pat, name) {
  */
 var traverseAsync = function(root, type, action, callback, c) {
   if (!is.existed(root)) {
-    fss.errorHandler(error.notExists(root))
+    fss.errorHandler(error.notExist(root))
   }
   if (is.directory(root)) {
     fss.readdir(root, function(err, all) {
@@ -191,7 +191,7 @@ var traverseAsync = function(root, type, action, callback, c) {
  * @api private
  */  
 var traverseSync = function(root, type, action) {
-  if (!is.existed(root)) throw error.notExists(root);
+  if (!is.existed(root)) throw error.notExist(root);
   if (is.directory(root)) {
     fs.readdirSync(root).forEach(function(dir) {
       dir = path.join(root, dir);

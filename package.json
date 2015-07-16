@@ -1,6 +1,6 @@
 {
   "name": "find",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Find files or directories by name",
   "url": "https://github.com/yuanchuan/find",
   "author": "yuanchuan <yuanchuan23@gmail.com> (http://yuanchuan.name)",
@@ -13,6 +13,7 @@
     "tmp": "^0.0.25"
   },
   "keywords": ["find", "findfile", "search", "files"],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/yuanchuan/find.git"
