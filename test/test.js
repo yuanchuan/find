@@ -4,6 +4,8 @@ var path = require('path');
 var tmp = require('tmp');
 var find = require('..');
 
+tmp.setGracefulCleanup();
+
 function createFilesUnder(dir, num, ext) {
   var files = [];
   num = num || 1;
@@ -30,8 +32,7 @@ describe('API test', function() {
   var testdir;
 
   beforeEach(function(done) {
-    tmp.setGracefulCleanup();
-    tmp.dir(function(err, dir) {
+    tmp.dir({unsafeCleanup: true}, function(err, dir) {
       if (err) return done(err);
       testdir = dir;
       done();
