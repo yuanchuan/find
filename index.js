@@ -20,33 +20,6 @@ var find = module.exports = {
 };
 
 
-var is = (function() {
-  function existed(name) {
-    return fs.existsSync(name) 
-  } 
-  function fsType(type) {
-    return function(name) {
-      return existed(name) ? fs.lstatSync(name)['is' + type]() : false;   
-    }
-  } 
-  function objType(type) {
-    return function(input) {
-      return ({}).toString.call(input) === '[object ' + type +  ']'; 
-    }
-  }
-  return {
-    existed:      existed,
-    file:         fsType('File'),
-    directory:    fsType('Directory'),
-    symbolicLink: fsType('SymbolicLink'),
-
-    string:       objType('String'),
-    regexp:       objType('RegExp'),
-    func:         objType('Function')
-  };
-}()); 
-
-
 var fss = {};
 
 /**
@@ -68,6 +41,37 @@ var error = {
     return new Error(name + ' does not exist.');
   }
 };
+
+
+var is = (function() {
+  function existed(name) {
+    return fs.existsSync(name) 
+  } 
+  function fsType(type) {
+    return function(name) {
+      try {
+        return fs.lstatSync(name)['is' + type]() 
+      } catch(e) {
+        fss.errorHandler(e);
+      }
+    }
+  } 
+  function objType(type) {
+    return function(input) {
+      return ({}).toString.call(input) === '[object ' + type +  ']'; 
+    }
+  }
+  return {
+    existed:      existed,
+    file:         fsType('File'),
+    directory:    fsType('Directory'),
+    symbolicLink: fsType('SymbolicLink'),
+
+    string:       objType('String'),
+    regexp:       objType('RegExp'),
+    func:         objType('Function')
+  };
+}()); 
 
 
 /**
