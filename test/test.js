@@ -4,8 +4,7 @@ var path = require('path');
 var tmp = require('tmp');
 var find = require('..');
 
-//tmp.setGracefulCleanup();
-
+tmp.setGracefulCleanup();
 
 function createBy(type) {
   return function(dir, num, ext) {
@@ -39,18 +38,17 @@ describe('API test', function() {
   var testdir;
 
   beforeEach(function(done) {
-    //tmp.dir({unsafeCleanup: true}, function(err, dir) {
-    tmp.dir(function(err, dir) {
+    tmp.dir({unsafeCleanup: true}, function(err, dir) {
       if (err) return done(err);
       testdir = dir;
       done();
     });
   });
- 
+
   it('`find.file()` should find all files and returns as an array in callback', function(done) {
     var expect = createFilesUnder(testdir, 3);
-    find.file(/./, testdir, function(all) {
-      assertEqual(expect, all);
+    find.file(testdir, function(found) {
+      assertEqual(expect, found);
       done();
     });
   });   
@@ -60,49 +58,21 @@ describe('API test', function() {
     var level1 = createDirUnder(testdir);
     expect = expect.concat(createFilesUnder(testdir, 2));
 
-    find.file(/./, testdir, function(all) {
-      assertEqual(expect, all);
+    find.file(testdir, function(found) {
+      assertEqual(expect, found);
       done();
     });
   });   
 
-  it('`file.file()` should handle less arguments with default empty pat', function(done) {
-    var expect = createFilesUnder(testdir, 3);
-    find.file(testdir, function(all) {
-      assertEqual(expect, all);
-      done();
-    });
-  }); 
-
   it('`find.dir()` should find all dirs just like find.file()', function(done) {
     var expect = createNestedDirs(testdir);
-    find.dir(/./, testdir, function(all) {
-      assertEqual(expect, all);
+    find.dir(testdir, function(found) {
+      assertEqual(expect, found);
       done();
     });
   });     
-
-  it('`file.dir()` should handle less arguments', function(done) {
-    var expect = createNestedDirs(testdir);
-    find.dir(testdir, function(all) {
-      assertEqual(expect, all);
-      done();
-    });
-  })
 
   it('`find.eachfile()` should find all files and process one by one', function(done) {
-    var expect = createFilesUnder(testdir, 3);
-    count = 0;
-    find.eachfile(/./, testdir, function(thisfile) {
-      assert(expect.indexOf(thisfile) > -1);
-      count++;
-    }).end(function() {
-      assert(count == expect.length);
-      done();
-    });
-  });     
-
-  it('`file.eachfile()` should handle less arguments', function(done) {
     var expect = createFilesUnder(testdir, 3);
     count = 0;
     find.eachfile(testdir, function(thisfile) {
@@ -111,8 +81,8 @@ describe('API test', function() {
     }).end(function() {
       assert(count == expect.length);
       done();
-    }); 
-  });
+    });
+  });     
 
   it('`find.eachdir()` should find all dirs just like find.eachfile()', function(done) {
     var expect = createNestedDirs(testdir);
@@ -128,30 +98,23 @@ describe('API test', function() {
 
   it('`find.fileSync()` should find all files synchronously', function(done) {
     var expect = createFilesUnder(testdir, 3);
-    var all = find.fileSync(/./, testdir);
-    assertEqual(expect, all);
+    var found = find.fileSync(testdir);
+    assertEqual(expect, found);
     done();
   });
 
-  it('`file.fileSync()` should handle less arguments', function(done) {
-    var expect = createFilesUnder(testdir, 3);
-    var all = find.fileSync(testdir);
-    assertEqual(expect, all);
-    done(); 
-  });
-
   it('`find.dirSync()` should find all dirs synchronously', function(done) {
-    var expect = createNestedDirs(testdir);
-    var all = find.dirSync(/./, testdir);
-    assertEqual(expect, all);
+    var expect = createNestedDirs(testdir, 3);
+    var found = find.dirSync(testdir);
+    assertEqual(expect, found);
     done();
   }); 
 
   it('`find.*` should find by name', function(done) {
     var expect = createFilesUnder(testdir, 3);
     var first = expect[0];
-    find.file(path.basename(first), testdir, function(all) {
-      assert.equal(first, all[0]);
+    find.file(path.basename(first), testdir, function(found) {
+      assert.equal(first, found[0]);
       done();
     });
   });    
@@ -178,8 +141,8 @@ describe('API test', function() {
     var allfile = find.fileSync(testdir);
     assertEqual(files, allfile);
 
-    find.file(testdir, function(all) {
-      assertEqual(files, allfile);
+    find.file(testdir, function(found) {
+      assertEqual(files, found);
       done();
     });
   });       
@@ -196,13 +159,12 @@ describe('API test', function() {
     var alldir = find.dirSync(testdir);
     assertEqual(dirs, alldir);
 
-    find.dir(testdir, function(all) {
-      assertEqual(dirs, all);
+    find.dir(testdir, function(found) {
+      assertEqual(dirs, found);
       done();
     });
     
   });       
- 
 
   it('`find.file(Sync)` should ignore circular symbolic links', function(done) {
     var files = createFilesUnder(testdir, 2);
@@ -218,11 +180,11 @@ describe('API test', function() {
     fs.unlinkSync(src);
     fs.symlinkSync(c, src, 'file');
 
-    var all = find.fileSync(testdir);
-    assertEqual(remaining, all);
+    var found = find.fileSync(testdir);
+    assertEqual(remaining, found);
 
-    find.file(testdir, function(all) {
-      assertEqual(remaining, all);
+    find.file(testdir, function(found) {
+      assertEqual(remaining, found);
       done();
     })
   });
@@ -241,16 +203,15 @@ describe('API test', function() {
     fs.rmdirSync(src);
     fs.symlinkSync(c, src, 'dir');
 
-    var all = find.dirSync(testdir);
-    assertEqual(remaining, all);
+    var found = find.dirSync(testdir);
+    assertEqual(remaining, found);
 
-    find.dir(testdir, function(all) {
-      assertEqual(remaining, all);
+    find.dir(testdir, function(found) {
+      assertEqual(remaining, found);
       done();
     })
     
   });
-   
 
   it('should throw exception at root which does not exist', function(done) {
     var catched = false;
@@ -281,6 +242,5 @@ describe('API test', function() {
       done();
     });
   });
-
 
 });
