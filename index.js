@@ -32,7 +32,7 @@ fss.errorHandler = function(err) {
     } else {
       throw err;
     }
-  }  
+  }
 };
 
 
@@ -45,20 +45,20 @@ var error = {
 
 var is = (function() {
   function existed(name) {
-    return fs.existsSync(name) 
-  } 
+    return fs.existsSync(name)
+  }
   function fsType(type) {
     return function(name) {
       try {
-        return fs.lstatSync(name)['is' + type]() 
+        return fs.lstatSync(name)['is' + type]()
       } catch(e) {
         fss.errorHandler(e);
       }
     }
-  } 
+  }
   function objType(type) {
     return function(input) {
-      return ({}).toString.call(input) === '[object ' + type +  ']'; 
+      return ({}).toString.call(input) === '[object ' + type +  ']';
     }
   }
   return {
@@ -71,7 +71,7 @@ var is = (function() {
     regexp:       objType('RegExp'),
     func:         objType('Function')
   };
-}()); 
+}());
 
 
 /**
@@ -117,23 +117,23 @@ fss.readlinkSync = function(name, depth) {
   } else {
     return isSymbolicLink ? '' : path.resolve(name);
   }
-}  
+}
 
 
 /**
- * Check pattern with path's basename 
+ * Check pattern against the path
  */
 var compare = function(pat, name) {
   var str = path.basename(name);
   return (
-       is.regexp(pat)   && pat.test(str) 
+       is.regexp(pat) && pat.test(name)
     || is.string(pat) && pat === str
-  ); 
+  );
 };
 
 
 /**
- * Traverse a directory recursively and asynchronously. 
+ * Traverse a directory recursively and asynchronously.
  *
  * @param {String} root
  * @param {String} type
@@ -154,12 +154,12 @@ var traverseAsync = function(root, type, action, callback, c) {
         chain.add(function() {
           var handleFile = function() {
             if (type == 'file') action(dir);
-            chain.next(); 
+            chain.next();
           }
           var handleDir = function(skip) {
             if (type == 'dir') action(dir);
             if (skip) chain.next();
-            else traverseAsync(dir, type, action, callback, chain);  
+            else traverseAsync(dir, type, action, callback, chain);
           }
           var isSymbolicLink = is.symbolicLink(dir);
           if (is.directory(dir)) {
@@ -174,7 +174,7 @@ var traverseAsync = function(root, type, action, callback, c) {
             });
           } else {
             handleFile();
-          } 
+          }
         })
       });
       chain.traverse(function() {
@@ -184,7 +184,7 @@ var traverseAsync = function(root, type, action, callback, c) {
   }
 }
 
- 
+
 /**
  * Traverse a directory recursively.
  *
@@ -193,7 +193,7 @@ var traverseAsync = function(root, type, action, callback, c) {
  * @param {Function} action
  * @return {Array} the result
  * @api private
- */  
+ */
 var traverseSync = function(root, type, action) {
   if (!is.existed(root)) throw error.notExist(root);
   if (is.directory(root)) {
@@ -202,7 +202,7 @@ var traverseSync = function(root, type, action) {
       var handleDir = function(skip) {
         if (type == 'dir') action(dir);
         if (skip) return;
-        traverseSync(dir, type, action); 
+        traverseSync(dir, type, action);
       }
       var handleFile = function() {
         if (type == 'file') action(dir);
@@ -217,33 +217,33 @@ var traverseSync = function(root, type, action) {
         }
       } else {
         handleFile();
-      } 
+      }
     });
   }
 };
 
 
 ['file', 'dir'].forEach(function(type) {
-  
+
   /**
-   * `find.file` and `find.dir` 
-   * 
-   * Find files or sub-directories in a given directory and 
-   * passes the result in an array as a whole. This follows 
-   * the default callback style of nodejs, think about `fs.readdir`, 
+   * `find.file` and `find.dir`
    *
-   * @param {RegExp|String} pat 
+   * Find files or sub-directories in a given directory and
+   * passes the result in an array as a whole. This follows
+   * the default callback style of nodejs, think about `fs.readdir`,
+   *
+   * @param {RegExp|String} pat
    * @param {String} root
    * @param {Function} fn
    * @api public
-   */ 
+   */
   find[type] = function(pat, root, fn) {
     var buffer = [];
     if (arguments.length == 2) {
       fn = root;
       root = pat;
       pat = '';
-    } 
+    }
     process.nextTick(function() {
       traverseAsync(
         root
@@ -263,33 +263,33 @@ var traverseSync = function(root, type, action) {
     return {
       error: function(handler) {
         if (is.func(handler)) {
-          find.__errorHandler = handler;  
-        } 
+          find.__errorHandler = handler;
+        }
       }
     }
   }
 
   /**
    * `find.eachfile` and `find.eachdir`
-   * 
-   * Find files or sub-directories in a given directory and 
-   * apply with a given action to each result immediately 
+   *
+   * Find files or sub-directories in a given directory and
+   * apply with a given action to each result immediately
    * rather than pass them back as an array.
    *
-   * @param {RegExp|String} pat 
+   * @param {RegExp|String} pat
    * @param {String} root
    * @param {Function} action
    * @return {Object} for chain methods
    * @api public
-   *  
-   */ 
+   *
+   */
   find['each' + type] = function(pat, root, action) {
     var callback = function() {}
     if (arguments.length == 2) {
       action = root;
       root = pat;
       pat = '';
-    } 
+    }
     process.nextTick(function() {
       traverseAsync(
           root
@@ -309,10 +309,10 @@ var traverseSync = function(root, type, action) {
           callback = fn;
         }
         return this;
-      }, 
+      },
       error: function(handler) {
         if (is.func(handler)) {
-          find.__errorHandler = handler;    
+          find.__errorHandler = handler;
         }
         return this;
       }
@@ -320,17 +320,17 @@ var traverseSync = function(root, type, action) {
   }
 
   /**
-   * `find.fileSync` and `find.dirSync` 
+   * `find.fileSync` and `find.dirSync`
    *
-   * Find files or sub-directories in a given directory synchronously 
-   * and returns the result as an array. This follows the default 'Sync' 
-   * methods of nodejs, think about `fs.readdirSync`, 
+   * Find files or sub-directories in a given directory synchronously
+   * and returns the result as an array. This follows the default 'Sync'
+   * methods of nodejs, think about `fs.readdirSync`,
    *
-   * @param {RegExp|String} pat 
+   * @param {RegExp|String} pat
    * @param {String} root
    * @return {Array} the result
    * @api public
-   */ 
+   */
   find[type + 'Sync'] = function(pat, root) {
     var buffer = [];
     if (arguments.length == 1) {
@@ -338,12 +338,12 @@ var traverseSync = function(root, type, action) {
       pat = '';
     }
     traverseSync(root, type, function(n) {
-      buffer.push(n);  
+      buffer.push(n);
     });
     return pat && buffer.filter(function(n) {
       return compare(pat, n);
     }) || buffer;
-  } 
+  }
 
-}); 
+});
 

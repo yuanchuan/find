@@ -15,7 +15,7 @@ function createBy(type) {
     for (var i = 0; i < num; ++i) {
       targets.push(tmp[type + 'Sync'](opts).name);
     }
-    return targets; 
+    return targets;
   }
 }
 
@@ -51,7 +51,7 @@ describe('API test', function() {
       assertEqual(expect, found);
       done();
     });
-  });   
+  });
 
   it('`find.file()` should find recursively', function(done) {
     var expect = createFilesUnder(testdir, 3);
@@ -62,7 +62,7 @@ describe('API test', function() {
       assertEqual(expect, found);
       done();
     });
-  });   
+  });
 
   it('`find.dir()` should find all dirs just like find.file()', function(done) {
     var expect = createNestedDirs(testdir);
@@ -70,7 +70,7 @@ describe('API test', function() {
       assertEqual(expect, found);
       done();
     });
-  });     
+  });
 
   it('`find.eachfile()` should find all files and process one by one', function(done) {
     var expect = createFilesUnder(testdir, 3);
@@ -82,7 +82,7 @@ describe('API test', function() {
       assert(count == expect.length);
       done();
     });
-  });     
+  });
 
   it('`find.eachdir()` should find all dirs just like find.eachfile()', function(done) {
     var expect = createNestedDirs(testdir);
@@ -92,23 +92,21 @@ describe('API test', function() {
       count++;
     }).end(function() {
       assert(count == expect.length);
-      done();   
+      done();
     });
-  });     
+  });
 
-  it('`find.fileSync()` should find all files synchronously', function(done) {
+  it('`find.fileSync()` should find all files synchronously', function() {
     var expect = createFilesUnder(testdir, 3);
     var found = find.fileSync(testdir);
     assertEqual(expect, found);
-    done();
   });
 
-  it('`find.dirSync()` should find all dirs synchronously', function(done) {
+  it('`find.dirSync()` should find all dirs synchronously', function() {
     var expect = createNestedDirs(testdir, 3);
     var found = find.dirSync(testdir);
     assertEqual(expect, found);
-    done();
-  }); 
+  });
 
   it('`find.*` should find by name', function(done) {
     var expect = createFilesUnder(testdir, 3);
@@ -117,9 +115,9 @@ describe('API test', function() {
       assert.equal(first, found[0]);
       done();
     });
-  });    
+  });
 
-  it('`find.*` should find by regular expression', function(done) {
+  it('`find.*` should find by regular expression', function() {
     var html = createFilesUnder(testdir, 1, '.html');
     var js = createFilesUnder(testdir, 2, '.js');
 
@@ -128,8 +126,15 @@ describe('API test', function() {
 
     jsAll = find.fileSync(/\.js$/, testdir);
     assertEqual(js, jsAll);
-    done();
-  });          
+  });
+
+  it('`find.*` should find by regular expression against the full path', function() {
+    var html = createFilesUnder(testdir, 1, '.html')[0];
+    var extensionless = path.join(path.dirname(html), path.basename(html, '.html'));
+
+    htmlAll = find.fileSync(new RegExp(extensionless), testdir);
+    assert.equal( html, htmlAll.join(''));
+  });
 
   it('`find.*` should follow file symbolic links', function(done) {
     var files = createFilesUnder(testdir, 2);
@@ -145,7 +150,7 @@ describe('API test', function() {
       assertEqual(files, found);
       done();
     });
-  });       
+  });
 
   it('`find.*` should follow direcotry symbolic links', function(done) {
     createFilesUnder(testdir, 2);
@@ -163,8 +168,7 @@ describe('API test', function() {
       assertEqual(dirs, found);
       done();
     });
-    
-  });       
+  });
 
   it('`find.file(Sync)` should ignore circular symbolic links', function(done) {
     var files = createFilesUnder(testdir, 2);
@@ -174,9 +178,9 @@ describe('API test', function() {
     var b = src + '-link-b';
     var c = src + '-link-c';
 
-    fs.symlinkSync(src, a, 'file'); 
-    fs.symlinkSync(a, b, 'file'); 
-    fs.symlinkSync(b, c, 'file'); 
+    fs.symlinkSync(src, a, 'file');
+    fs.symlinkSync(a, b, 'file');
+    fs.symlinkSync(b, c, 'file');
     fs.unlinkSync(src);
     fs.symlinkSync(c, src, 'file');
 
@@ -197,9 +201,9 @@ describe('API test', function() {
     var b = src + '-link-b';
     var c = src + '-link-c';
 
-    fs.symlinkSync(src, a, 'dir'); 
-    fs.symlinkSync(a, b, 'dir'); 
-    fs.symlinkSync(b, c, 'dir'); 
+    fs.symlinkSync(src, a, 'dir');
+    fs.symlinkSync(a, b, 'dir');
+    fs.symlinkSync(b, c, 'dir');
     fs.rmdirSync(src);
     fs.symlinkSync(c, src, 'dir');
 
@@ -210,7 +214,6 @@ describe('API test', function() {
       assertEqual(remaining, found);
       done();
     })
-    
   });
 
   it('should throw exception at root which does not exist', function(done) {
@@ -224,8 +227,8 @@ describe('API test', function() {
       assert(catched);
       done();
     });
-  }); 
-  
+  });
+
   it('`.error()`should catch exceptions', function(done) {
     var catched;
     try {
@@ -242,5 +245,4 @@ describe('API test', function() {
       done();
     });
   });
-
 });
