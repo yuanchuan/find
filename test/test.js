@@ -152,6 +152,23 @@ describe('API test', function() {
     });
   });
 
+  it('`find.find(Sync)` should return the symbolic links directly which does not exist', function(done) {
+    var files = createFilesUnder(testdir, 2);
+    var srcfile = files[0];
+    var linkfile = srcfile + '-link';
+    fs.symlinkSync(srcfile, linkfile, 'file');
+    fs.unlinkSync(srcfile);
+
+    var expected = [files[1], linkfile];
+    var found = find.fileSync(testdir);
+    assertEqual(found, expected);
+
+    find.file(testdir, function(found) {
+      assertEqual(expected, found);
+      done();
+    });
+  });
+
   it('`find.*` should follow direcotry symbolic links', function(done) {
     createFilesUnder(testdir, 2);
     var dir = createDirUnder(testdir)[0];
@@ -168,29 +185,6 @@ describe('API test', function() {
       assertEqual(dirs, found);
       done();
     });
-  });
-
-  it('`find.file(Sync)` should ignore circular symbolic links', function(done) {
-    var files = createFilesUnder(testdir, 2);
-    var src = files[0];
-    var remaining = files.slice(1);
-    var a = src + '-link-a';
-    var b = src + '-link-b';
-    var c = src + '-link-c';
-
-    fs.symlinkSync(src, a, 'file');
-    fs.symlinkSync(a, b, 'file');
-    fs.symlinkSync(b, c, 'file');
-    fs.unlinkSync(src);
-    fs.symlinkSync(c, src, 'file');
-
-    var found = find.fileSync(testdir);
-    assertEqual(remaining, found);
-
-    find.file(testdir, function(found) {
-      assertEqual(remaining, found);
-      done();
-    })
   });
 
   it('`find.dir(Sync)` should ignore circular symbolic links', function(done) {

@@ -93,6 +93,9 @@ var is = (function() {
  */
 fss.readlink = function(name, fn, depth) {
   if (depth == undefined) depth = 10;
+  if (!is.existed(name) && (depth < 10)) {
+    return fn(path.resolve(name));
+  }
   var isSymbolicLink = is.symbolicLink(name);
   if (!isSymbolicLink) {
     fn(path.resolve(name));
@@ -108,6 +111,9 @@ fss.readlink = function(name, fn, depth) {
 
 fss.readlinkSync = function(name, depth) {
   if (depth == undefined) depth = 10;
+  if (!is.existed(name) && depth < 10) {
+    return path.resolve(name);
+  }
   var isSymbolicLink = is.symbolicLink(name);
   if (!isSymbolicLink) {
     return path.resolve(name);
@@ -167,7 +173,11 @@ var traverseAsync = function(root, type, action, callback, c) {
           } else if (isSymbolicLink) {
             fss.readlink(dir, function(origin) {
               if (origin) {
-                is.directory(origin) ? handleDir(isSymbolicLink) : handleFile();
+                if (is.existed(origin) && is.directory(origin)) {
+                  handleDir(isSymbolicLink)
+                } else {
+                  handleFile()
+                }
               } else {
                 chain.next();
               }
@@ -213,7 +223,11 @@ var traverseSync = function(root, type, action) {
       } else if (isSymbolicLink) {
         var origin = fss.readlinkSync(dir);
         if (origin) {
-          is.directory(origin) ? handleDir(isSymbolicLink) : handleFile();
+          if (is.existed(origin) && is.directory(origin)) {
+            handleDir(isSymbolicLink);
+          } else {
+            handleFile();
+          }
         }
       } else {
         handleFile();
