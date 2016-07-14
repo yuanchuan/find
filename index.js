@@ -160,12 +160,12 @@ var traverseAsync = function(root, type, action, callback, c) {
         chain.add(function() {
           var handleFile = function() {
             if (type == 'file') action(dir);
-            chain.next();
+            process.nextTick(function() { chain.next() });
           }
           var handleDir = function(skip) {
             if (type == 'dir') action(dir);
             if (skip) chain.next();
-            else traverseAsync(dir, type, action, callback, chain);
+            else process.nextTick(function() { traverseAsync(dir, type, action, callback, chain)});
           }
           var isSymbolicLink = is.symbolicLink(dir);
           if (is.directory(dir)) {
