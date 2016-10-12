@@ -20,8 +20,8 @@
   ],
   "license": "MIT",
   "repository": {
-    "type": "git",
-    "url": "git://github.com/yuanchuan/find.git"
+    "url": "git://github.com/yuanchuan/find.git",
+    "type": "git"
   },
   "bugs": {
     "url": "https://github.com/yuanchuan/find/issues"
