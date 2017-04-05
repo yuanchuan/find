@@ -1,7 +1,8 @@
-#find
+# find
 
 Find files or directories by name.
 
+[![NPM](https://nodei.co/npm/find.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/find/)
 
 ## Installation
 
@@ -31,7 +32,7 @@ find.file(/\.js$/, __dirname, function(files) {
 
 ## Features
   * Recursively search each sub-directories
-  * Asynchronously or synchronously 
+  * Asynchronously or synchronously
   * Filtering by regular expression or string comparing
 
 ## Changelog
@@ -55,7 +56,7 @@ find.file(__dirname, function(files) {
 find.dir(__dirname, function(dirs) {
   //
 })
-``` 
+```
 
 
 #### .eachfile([pattern,] root, action)
@@ -72,7 +73,7 @@ find.eachfile(__dirname, function(file) {
 find.eachdir(__dirname, function(dir) {
   //
 })
-```  
+```
 
 #### .fileSync([pattern,] root)
 ```javascript
@@ -84,14 +85,14 @@ var files = find.fileSync(__dirname);
 var dirs = find.dirSync(__dirname);
 ```
 
-#### .error([callback]) 
+#### .error([callback])
 
 Handling errors in asynchronous interfaces
 
 ```javascript
 find
   .file(__dirname, function(file) {
-    //  
+    //
   })
   .error(function(err) {
     if (err) {
@@ -110,11 +111,6 @@ find
     //
   })
   .end(function() {
-    console.log('find end'); 
-  }) 
+    console.log('find end');
+  })
 ```
- 
-
-### LICENSE
-
-(MIT Licensed)
