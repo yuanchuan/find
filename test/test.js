@@ -210,6 +210,27 @@ describe('API test', function() {
     })
   });
 
+  it('`find.*` should find for a symbolic directory', function(done) {
+    var expect = createFilesUnder(testdir, 2);
+    var linkdir = testdir + '-link';
+
+    fs.symlinkSync(testdir, linkdir, 'dir');
+
+    var allfiles = find.fileSync(linkdir);
+    assertEqual(
+      expect.map(function(n) { return fs.realpathSync(n) }),
+      allfiles.map(function(n) { return fs.realpathSync(n) })
+    );
+
+    find.file(linkdir, function(found) {
+      assertEqual(
+        expect.map(function(n) { return fs.realpathSync(n) }),
+        found.map(function(n) { return fs.realpathSync(n) })
+      );
+      done();
+    });
+  });
+
   it('should throw exception at root which does not exist', function(done) {
     var catched = false;
     try {
