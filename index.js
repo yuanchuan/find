@@ -152,11 +152,17 @@ var traverseAsync = function(root, type, action, callback, c) {
   if (!is.existed(root)) {
     fss.errorHandler(error.notExist(root))
   }
+
+  var originRoot = root;
+  if (is.symbolicLink(root)) {
+    root = fss.readlinkSync(root);
+  }
+
   if (is.directory(root)) {
     fss.readdir(root, function(err, all) {
       var chain = Chain();
       all && all.forEach(function(dir) {
-        dir = path.join(root, dir);
+        dir = path.join(originRoot, dir);
         chain.add(function() {
           var handleFile = function() {
             if (type == 'file') action(dir);
@@ -206,9 +212,13 @@ var traverseAsync = function(root, type, action, callback, c) {
  */
 var traverseSync = function(root, type, action) {
   if (!is.existed(root)) throw error.notExist(root);
+  var originRoot = root;
+  if (is.symbolicLink(root)) {
+    root = fss.readlinkSync(root);
+  }
   if (is.directory(root)) {
     fs.readdirSync(root).forEach(function(dir) {
-      dir = path.join(root, dir);
+      dir = path.join(originRoot, dir);
       var handleDir = function(skip) {
         if (type == 'dir') action(dir);
         if (skip) return;
