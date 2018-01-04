@@ -1,4 +1,4 @@
-# find
+# find [![Status](https://travis-ci.org/yuanchuan/find.svg?branch=master)](https://travis-ci.org/yuanchuan/find "See test builds")
 
 Find files or directories by name.
 
