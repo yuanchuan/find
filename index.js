@@ -92,17 +92,21 @@ var is = (function() {
  * Enhancement for fs.readlink && fs.readlinkSync.
  */
 fss.readlink = function(name, fn, depth) {
-  if (depth == undefined) depth = 10;
-  if (!is.existed(name) && (depth < 10)) {
+  if (depth == undefined) depth = 5;
+  if (!is.existed(name) && (depth < 5)) {
     return fn(path.resolve(name));
   }
   var isSymbolicLink = is.symbolicLink(name);
   if (!isSymbolicLink) {
     fn(path.resolve(name));
   } else if (depth) {
-    fs.readlink(name, function(err, origin) {
-      fss.errorHandler(err);
-      fss.readlink(origin, fn, --depth);
+    fs.realpath(name, function(err, origin) {
+      if (err && /(ENOENT|ELOOP)/.test(err.code)) {
+        fn(name);
+      } else {
+        fss.errorHandler(err);
+        fss.readlink(origin, fn, --depth);
+      }
     });
   } else {
     fn(isSymbolicLink ? '' : path.resolve(name));
@@ -110,15 +114,21 @@ fss.readlink = function(name, fn, depth) {
 }
 
 fss.readlinkSync = function(name, depth) {
-  if (depth == undefined) depth = 10;
-  if (!is.existed(name) && depth < 10) {
+  if (depth == undefined) depth = 5;
+  if (!is.existed(name) && depth < 5) {
     return path.resolve(name);
   }
   var isSymbolicLink = is.symbolicLink(name);
   if (!isSymbolicLink) {
     return path.resolve(name);
   } else if (depth) {
-    var origin = fs.readlinkSync(name);
+    var origin;
+    try {
+      origin = fs.realpathSync(name);
+    } catch (err) {
+      if (/(ENOENT|ELOOP)/.test(err.code)) return name;
+      else fss.errorHandler(err);
+    }
     return fss.readlinkSync(origin, --depth);
   } else {
     return isSymbolicLink ? '' : path.resolve(name);

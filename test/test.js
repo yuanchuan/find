@@ -231,6 +231,29 @@ describe('API test', function() {
     });
   });
 
+  it('`find.*` should follow relative symbolic links', function(done) {
+    var count = 2;
+    var dir = createNestedDirs(testdir)[0];
+    createFilesUnder(dir, count);
+
+    var linkdir = dir + '-link';
+
+    // create relative symbolic link
+    process.chdir(path.dirname(dir));
+    fs.symlinkSync(path.basename(dir), linkdir, 'dir');
+
+    // move to somewhere else
+    process.chdir(__dirname);
+    var found = find.fileSync(linkdir);
+
+    assert.equal(found.length, count);
+
+    find.file(testdir, function(found) {
+      assert.equal(found.length, count);
+      done();
+    });
+  });
+
   it('should throw exception at root which does not exist', function(done) {
     var catched = false;
     try {
