@@ -9,8 +9,8 @@
     "traverse-chain": "~0.1.0"
   },
   "devDependencies": {
-    "mocha": "^2.2.4",
-    "tmp": "^0.0.25"
+    "mocha": "^5.0.2",
+    "tmp": "^0.0.33"
   },
   "keywords": [
     "find",
