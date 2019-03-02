@@ -396,4 +396,5 @@ find.use = function(options) {
   if (options.fs) {
     fs = options.fs;
   }
+  return find;
 }
