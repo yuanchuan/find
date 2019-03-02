@@ -16,6 +16,7 @@ var find = module.exports = {
 
   // fileSync:  function([pat,] root) {}
   // dirSync:   function([pat,] root) {}
+  // use::      function(options) {}
 
 };
 
@@ -45,12 +46,12 @@ var error = {
 
 var is = (function() {
   function existed(name) {
-    return fs.existsSync(name)
+    return fs.existsSync(name);
   }
   function fsType(type) {
     return function(name) {
       try {
-        return fs.lstatSync(name)['is' + type]()
+        return fs.lstatSync(name)['is' + type]();
       } catch(e) {
         fss.errorHandler(e);
       }
@@ -58,6 +59,9 @@ var is = (function() {
   }
   function objType(type) {
     return function(input) {
+      if (type == 'Function') {
+        return typeof input === 'function';
+      }
       return ({}).toString.call(input) === '[object ' + type +  ']';
     }
   }
@@ -78,8 +82,8 @@ var is = (function() {
  *  Method injection for handling errors.
  */
 ['readdir', 'lstat'].forEach(function(method) {
-  var origin = fs[method];
   fss[method] = function(path, callback) {
+    var origin = fs[method];
     return origin.apply(fs, [path, function(err) {
       fss.errorHandler(err);
       return callback.apply(null, arguments);
@@ -381,3 +385,15 @@ var traverseSync = function(root, type, action) {
 
 });
 
+
+/**
+ * Configuations for internal usage
+ *
+ * @param {Object} options
+ * @api public
+ */
+find.use = function(options) {
+  if (options.fs) {
+    fs = options.fs;
+  }
+}
