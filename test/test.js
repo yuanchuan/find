@@ -11,7 +11,7 @@ function createBy(type) {
     var targets = [];
     num = num || 1;
     if (Array.isArray(dir)) dir = dir[0];
-    var opts = { template: dir + '/tmp-XXXXXX' + (ext || '') };
+    var opts = { template: path.join(dir, '/tmp-XXXXXX' + (ext || '')) };
     for (var i = 0; i < num; ++i) {
       targets.push(tmp[type + 'Sync'](opts).name);
     }
@@ -254,19 +254,6 @@ describe('API test', function() {
     });
   });
 
-  it('should throw exception at root which does not exist', function(done) {
-    var catched = false;
-    try {
-      find.fileSync('__not_exist');
-    } catch(e) {
-      catched = true;
-    }
-    setTimeout(function() {
-      assert(catched);
-      done();
-    });
-  });
-
   it('`.error()`should catch exceptions', function(done) {
     var catched;
     try {
@@ -283,4 +270,18 @@ describe('API test', function() {
       done();
     });
   });
+
+  it('should throw exception at root which does not exist', function(done) {
+    var catched = false;
+    try {
+      find.fileSync('__not_exist');
+    } catch(e) {
+      catched = true;
+    }
+    setTimeout(function() {
+      assert(catched);
+      done();
+    });
+  });
+
 });
