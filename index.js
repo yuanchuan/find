@@ -59,7 +59,7 @@ var is = (function() {
   }
   function objType(type) {
     return function(input) {
-      if (type == 'Function') {
+      if (type === 'Function') {
         return typeof input === 'function';
       }
       return ({}).toString.call(input) === '[object ' + type +  ']';
@@ -386,6 +386,16 @@ var traverseSync = function(root, type, action) {
 });
 
 
+var fsMethods = [
+  'existsSync',
+  'lstatSync',
+  'realpath',
+  'realpathSync',
+  'readdir',
+  'readdirSync'
+];
+
+
 /**
  * Configuations for internal usage
  *
@@ -393,8 +403,12 @@ var traverseSync = function(root, type, action) {
  * @api public
  */
 find.use = function(options) {
-  if (options.fs) {
-    fs = options.fs;
+  if (options && options.fs) {
+    if (fsMethods.every(n => !!options.fs[n])) {
+      fs = options.fs;
+    } else {
+      throw new Error('The provided fs object is not compatiable with native fs.');
+    }
   }
   return find;
 }
