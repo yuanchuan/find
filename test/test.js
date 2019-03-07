@@ -129,14 +129,6 @@ describe('API test', function() {
     assertEqual(js, jsAll);
   });
 
-  it('`find.*` should find by regular expression against the full path', function() {
-    var html = createFilesUnder(testdir, 1, '.html')[0];
-    var extensionless = path.join(path.dirname(html), path.basename(html, '.html'));
-
-    htmlAll = find.fileSync(new RegExp(extensionless), testdir);
-    assert.equal( html, htmlAll.join(''));
-  });
-
   it('`find.*` should follow file symbolic links', function(done) {
     var files = createFilesUnder(testdir, 2);
     var srcfile = files[0];
