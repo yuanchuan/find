@@ -19,6 +19,11 @@ function createBy(type) {
   }
 }
 
+function assertEqual(a, b) {
+  assert.deepEqual(a.sort(), b.sort());
+}
+
+
 var createFilesUnder = createBy('file');
 var createDirUnder = createBy('dir');
 
@@ -28,10 +33,6 @@ function createNestedDirs(testdir) {
   var level22 = createDirUnder(level1)[0];
   var level3 = createDirUnder(level2)[0];
   return [level1, level2, level22, level3];
-}
-
-function assertEqual(arra, arrb) {
-  return assert.equal(arra.sort().join(''), arrb.sort().join(''));
 }
 
 describe('API test', function() {

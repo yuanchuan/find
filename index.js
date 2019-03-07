@@ -52,8 +52,13 @@ var is = (function() {
     return function(name) {
       try {
         return fs.lstatSync(name)['is' + type]();
-      } catch(e) {
-        fss.errorHandler(e);
+      } catch(err) {
+        if (!/^(EPERM|EACCES)$/.test(err.code)) {
+          fss.errorHandler(err);
+        }
+        else {
+          console.warn('Warning: Cannot access %s', name);
+        }
       }
     }
   }
@@ -105,11 +110,14 @@ fss.readlink = function(name, fn, depth) {
     fn(path.resolve(name));
   } else if (depth) {
     fs.realpath(name, function(err, origin) {
-      if (err && /(ENOENT|ELOOP)/.test(err.code)) {
+      if (err && /^(ENOENT|ELOOP|EPERM|EACCES)$/.test(err.code)) {
         fn(name);
       } else {
-        fss.errorHandler(err);
-        fss.readlink(origin, fn, --depth);
+        if (err) {
+          fss.errorHandler(err);
+        } else {
+          fss.readlink(origin, fn, --depth);
+        }
       }
     });
   } else {
@@ -130,8 +138,11 @@ fss.readlinkSync = function(name, depth) {
     try {
       origin = fs.realpathSync(name);
     } catch (err) {
-      if (/(ENOENT|ELOOP)/.test(err.code)) return name;
-      else fss.errorHandler(err);
+      if (/^(ENOENT|ELOOP|EPERM|EACCES)$/.test(err.code)) {
+        return name;
+      } else {
+        fss.errorHandler(err);
+      }
     }
     return fss.readlinkSync(origin, --depth);
   } else {
