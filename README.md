@@ -36,9 +36,12 @@ find.file(/\.js$/, __dirname, function(files) {
   * Filtering by regular expression or string comparing
 
 ## Changelog
+#### 0.3.0
+  * Added `.use()` method
+
 #### 0.2.0
-* the first `pattern` option is now optional
-* will follow symbolic links
+  * The first `pattern` option is now optional
+  * Will follow symbolic links
 
 
 ## API
@@ -113,4 +116,22 @@ find
   .end(function() {
     console.log('find end');
   })
+```
+
+#### .use(Options)
+  * `fs`: The internal fs object to be used.
+
+```javascript
+const { fs, vol } = require('memfs');
+
+const json = {
+  './README.md': '1',
+  './src/index.js': '2'
+};
+
+vol.fromJSON(json, '/app');
+
+find
+  .use({ fs: fs })
+  .file('/app', console.log);
 ```
