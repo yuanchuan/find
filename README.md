@@ -1,8 +1,13 @@
+# Warning
+
+**I no longer maintain this lib, please use other alternatives.**
+
 # find [![Status](https://travis-ci.org/yuanchuan/find.svg?branch=master)](https://travis-ci.org/yuanchuan/find "See test builds")
 
 Find files or directories by name.
 
 [![NPM](https://nodei.co/npm/find.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/find/)
+
 
 ## Installation
 
